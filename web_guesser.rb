@@ -8,20 +8,18 @@ require 'active_support/inflector'
 
 get '/' do
 
-    # TO DO : fix case where user wins on last guess
-    if @@guesses > 1
-        guess = params['guess']
-        @@guesses -= 1 unless (guess == "" || guess.nil?)
-        result = check_guess(guess)
+    guess = params['guess']
+    @@guesses -= 1 unless (guess == "" || guess.nil?)
+    result = check_guess(guess)
+    background_color = result[1]
+    if @@winner
         message = result[0]
-        message +=  " #{@@guesses} #{pluralize(@@guesses,'guess')} remaining." unless @@winner
-        background_color = result[1]
-        if @@winner
-            message += " New number generated."
-            @@guesses = 5
-            @@secret_number = rand(100)
-            @@winner = false
-        end
+        @@guesses = 5
+        @@secret_number = rand(100)
+        @@winner = false
+    elsif @@guesses > 0
+        message = result[0]
+        message +=  " #{@@guesses} #{pluralize(@@guesses,'guess')} remaining."
     else
         message = "Out of guesses. You lose! New number generated."
         background_color = 'white'
@@ -33,7 +31,6 @@ get '/' do
 
     erb :index, :locals => {:message => message, :bgcolor => background_color}
 
-    
 end
 
 def check_guess(guess)
@@ -55,7 +52,7 @@ def check_guess(guess)
             message = "Too low! Try again."
             color = 'lightcoral'
         else
-            message = "Correct! The secret number was #{@@secret_number}."
+            message = "Correct! The secret number was #{@@secret_number}. New number generated."
             color = 'lime'
             @@winner = true
         end
